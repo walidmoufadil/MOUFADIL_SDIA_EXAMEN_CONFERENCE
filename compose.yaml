@@ -1,0 +1,83 @@
+version: "3.9"
+
+services:
+  keycloak:
+    image: keycloak/keycloak:latest
+    container_name: keycloak-container
+    command:
+      - start-dev
+    ports:
+      - "8080:8080"
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+
+  axon-server:
+    image: axoniq/axonserver:latest
+    container_name: axon-server
+    ports:
+      - "8124:8124"
+      - "8161:8161"
+    environment:
+      AXONSERVER_HOSTNAME: localhost
+    volumes:
+      - axon-data:/data
+
+  zookeeper:
+    image: wurstmeister/zookeeper:latest
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: wurstmeister/kafka:latest
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  mysql-conference:
+    image: mysql:8.0
+    container_name: mysql-conference
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: conference_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-conference-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  mysql-keynote:
+    image: mysql:8.0
+    container_name: mysql-keynote
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: keynote_db
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-keynote-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+volumes:
+  axon-data:
+  mysql-conference-data:
+  mysql-keynote-data:
