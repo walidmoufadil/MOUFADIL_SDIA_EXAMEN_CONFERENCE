@@ -1,0 +1,18 @@
+package org.example.conferenceservice.service;
+
+import org.example.conferenceservice.dto.ConferenceRequestDTO;
+import org.example.conferenceservice.dto.ReviewRequestDTO;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public interface IConferenceCommandService {
+    void createConference(ConferenceRequestDTO conference);
+    void updateConference(Long id, ConferenceRequestDTO conference);
+    void patchConference(Long id, ConferenceRequestDTO conference);
+    void patchConferenceReviews(Long id, List<ReviewRequestDTO> reviews);
+    void deleteReviewFromConference(Long conferenceId, Long reviewId);
+    void deleteConference(Long id);
+}
+
